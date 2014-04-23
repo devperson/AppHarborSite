@@ -10,7 +10,8 @@ namespace DataAccess
 {
     public class DataBaseContext : DbContext
     {
-        public DataBaseContext(): base("FilesDataBase")
+        public DataBaseContext()
+            : base("DataBaseContext")
         {
             Configuration.LazyLoadingEnabled = false;
             Configuration.ProxyCreationEnabled = false;

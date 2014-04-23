@@ -6,7 +6,7 @@ using System.Text;
 
 namespace DataAccess
 {
-    public class DataBaseContextInitializer : DropCreateDatabaseIfModelChanges<DataBaseContext>
+    public class DataBaseContextInitializer : CreateDatabaseIfNotExists<DataBaseContext>
     {
     }
 }
