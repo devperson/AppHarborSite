@@ -42,12 +42,7 @@ namespace MvcApplication1
 
             WebApiConfig.Register(GlobalConfiguration.Configuration);
             RegisterGlobalFilters(GlobalFilters.Filters);
-            RegisterRoutes(RouteTable.Routes);
-
-            using (DataBaseContext db = new DataBaseContext())
-            {
-                db.Database.CreateIfNotExists();
-            }
+            RegisterRoutes(RouteTable.Routes);           
         }
     }
 }
