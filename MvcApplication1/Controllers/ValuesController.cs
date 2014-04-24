@@ -100,7 +100,8 @@ namespace MvcApplication1.Controllers
         {
             newPart.Id = parts.Any() ? parts.Max(p => p.Id) + 1 : 1;
             parts.Add(newPart);
-            c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+            var param = string.Format("{0}{1}", string.Join("_", parts.Select(p => p.Id)), Messages.DownloadAvailable);
+            c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", param, Messages.DownloadAvailable) });
             if (parts.Count() > 2)
                 c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
 
