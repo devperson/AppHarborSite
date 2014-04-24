@@ -128,7 +128,7 @@ namespace MvcApplication1.Controllers
                 objCtx.ExecuteStoreCommand("TRUNCATE TABLE [Files]");
             }
 
-            parts.Clear();
+           // parts.Clear();
         }
 
     }
