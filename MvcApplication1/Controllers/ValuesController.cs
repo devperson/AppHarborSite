@@ -61,6 +61,9 @@ namespace MvcApplication1.Controllers
         }
 
 
+
+
+
         // GET api/values/AnyPart
         [HttpGet]
         [ActionNameAttribute("GetPart")]
@@ -80,16 +83,7 @@ namespace MvcApplication1.Controllers
             using (DataBaseContext context = new DataBaseContext())
             {
                 var part = context.Parts.FirstOrDefault(p => p.Id == id);
-                if (part != null)
-                {
-                    context.Parts.Remove(part);
-                    context.SaveChanges();
-                    if (!context.Parts.Any())
-                        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
-                    return part;
-                }
-                else
-                    return null;
+                return part;                
             }            
         }
 
@@ -116,6 +110,23 @@ namespace MvcApplication1.Controllers
             }
         }
 
+        [HttpDelete]
+        [ActionNameAttribute("RemovePart")]
+        public void RemovePart(long id)
+        {
+            using (DataBaseContext context = new DataBaseContext())
+            {
+                var part = context.Parts.FirstOrDefault(p => p.Id == id);
+                if (part != null)
+                {
+                    context.Parts.Remove(part);
+                    context.SaveChanges();                   
+                }
+
+                if (!context.Parts.Any())
+                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
+            }
+        }
 
         [HttpDelete]
         [ActionNameAttribute("ClearDb")]
