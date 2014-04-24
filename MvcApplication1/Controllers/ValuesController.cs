@@ -13,7 +13,7 @@ namespace MvcApplication1.Controllers
     public class ValuesController : ApiController
     {
         static HubClient c = new HubClient(Constants.Host, Clients.Server);
-        static List<FilePart> parts = new List<FilePart>();
+        //static List<FilePart> parts = new List<FilePart>();
 
         //GET api/values/GetFileInfo
         [HttpGet]
@@ -66,31 +66,31 @@ namespace MvcApplication1.Controllers
         [ActionNameAttribute("GetPart")]
         public FilePart GetPart(long id)
         {
-            var part = parts.FirstOrDefault(p => p.Id == id);
-            if (part != null)
-            {
-                parts.Remove(part);
-                if (!parts.Any())
-                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
-
-                return part;
-            }
-            else
-                return null;
-            //using (DataBaseContext context = new DataBaseContext())
+            //var part = parts.FirstOrDefault(p => p.Id == id);
+            //if (part != null)
             //{
-            //    var part = context.Parts.FirstOrDefault(p => p.Id == id);
-            //    if (part != null)
-            //    {
-            //        context.Parts.Remove(part);
-            //        context.SaveChanges();
-            //        if (!context.Parts.Any())
-            //            c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });   
-            //        return part;
-            //    }
-            //    else
-            //        return null;
-            //}            
+            //    parts.Remove(part);
+            //    if (!parts.Any())
+            //        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
+
+            //    return part;
+            //}
+            //else
+            //    return null;
+            using (DataBaseContext context = new DataBaseContext())
+            {
+                var part = context.Parts.FirstOrDefault(p => p.Id == id);
+                if (part != null)
+                {
+                    context.Parts.Remove(part);
+                    context.SaveChanges();
+                    if (!context.Parts.Any())
+                        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
+                    return part;
+                }
+                else
+                    return null;
+            }            
         }
 
         // POST api/values/AddPart
@@ -98,23 +98,22 @@ namespace MvcApplication1.Controllers
         [ActionNameAttribute("AddPart")]        
         public void Post(FilePart newPart)
         {
-            newPart.Id = parts.Any() ? parts.Max(p => p.Id) + 1 : 1;
-            parts.Add(newPart);
-            var param = string.Format("{0}{1}", string.Join("_", parts.Select(p => p.Id)), Messages.DownloadAvailable);
-            c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", param, Messages.DownloadAvailable) });
-            if (parts.Count() > 2)
-                c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
+            //newPart.Id = parts.Any() ? parts.Max(p => p.Id) + 1 : 1;
+            //parts.Add(newPart);
+            //c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+            //if (parts.Count() > 2)
+            //    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
 
-            //using (DataBaseContext context = new DataBaseContext())
-            //{
-            //    context.Parts.Add(newPart);
-            //    context.SaveChanges();
+            using (DataBaseContext context = new DataBaseContext())
+            {
+                context.Parts.Add(newPart);
+                context.SaveChanges();
 
-            //    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+                c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
 
-            //    if (context.Parts.Count() > 8)
-            //        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
-            //}
+                if (context.Parts.Count() > 2)
+                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
+            }
         }
 
 
