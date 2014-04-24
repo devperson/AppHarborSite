@@ -12,7 +12,8 @@ namespace MvcApplication1.Controllers
 {
     public class ValuesController : ApiController
     {
-        static HubClient c = new HubClient(Constants.Host, Clients.Server);        
+        static HubClient c = new HubClient(Constants.Host, Clients.Server);
+        static List<FilePart> parts = new List<FilePart>();
 
         //GET api/values/GetFileInfo
         [HttpGet]
@@ -65,39 +66,54 @@ namespace MvcApplication1.Controllers
         [ActionNameAttribute("GetPart")]
         public FilePart GetPart(long id)
         {
-            using (DataBaseContext context = new DataBaseContext())
+            var part = parts.FirstOrDefault(p => p.Id == id);
+            if (part != null)
             {
-                var part = context.Parts.FirstOrDefault(p => p.Id == id);
-                if (part != null)
-                {
-                    context.Parts.Remove(part);
-                    context.SaveChanges();
-                    if (!context.Parts.Any())
-                        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });   
-                    return part;
-                }
-                else
-                    return null;
-            }            
+                parts.Remove(part);
+                if (!parts.Any())
+                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
 
-
+                return part;
+            }
+            else
+                return null;
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    var part = context.Parts.FirstOrDefault(p => p.Id == id);
+            //    if (part != null)
+            //    {
+            //        context.Parts.Remove(part);
+            //        context.SaveChanges();
+            //        if (!context.Parts.Any())
+            //            c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });   
+            //        return part;
+            //    }
+            //    else
+            //        return null;
+            //}            
         }
 
         // POST api/values/AddPart
         [HttpPost]
         [ActionNameAttribute("AddPart")]        
         public void Post(FilePart newPart)
-        {            
-            using (DataBaseContext context = new DataBaseContext())
-            {
-                context.Parts.Add(newPart);
-                context.SaveChanges();
+        {
+            newPart.Id = parts.Any() ? parts.Max(p => p.Id) + 1 : 1;
+            parts.Add(newPart);
+            c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+            if (parts.Count() > 8)
+                c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
 
-                c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    context.Parts.Add(newPart);
+            //    context.SaveChanges();
 
-                if (context.Parts.Count() > 8)
-                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
-            }
+            //    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+
+            //    if (context.Parts.Count() > 8)
+            //        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
+            //}
         }
 
 
@@ -111,6 +127,8 @@ namespace MvcApplication1.Controllers
                 objCtx.ExecuteStoreCommand("TRUNCATE TABLE [Parts]");
                 objCtx.ExecuteStoreCommand("TRUNCATE TABLE [Files]");
             }
+
+            parts.Clear();
         }
 
     }
