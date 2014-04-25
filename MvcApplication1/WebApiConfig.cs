@@ -18,23 +18,8 @@ namespace MvcApplication1
                 defaults: new { id = RouteParameter.Optional }
             );
                             
-            config.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-            config.Formatters.Remove(config.Formatters.XmlFormatter);            
-        }
-
-        public class MyHttpControllerHandler : HttpControllerHandler, IRequiresSessionState
-        {
-            public MyHttpControllerHandler(RouteData routeData)
-                : base(routeData)
-            {
-            }
-        }
-        public class MyHttpControllerRouteHandler : HttpControllerRouteHandler
-        {
-            protected override IHttpHandler GetHttpHandler(RequestContext requestContext)
-            {
-                return new MyHttpControllerHandler(requestContext.RouteData);
-            }
-        }
+            config.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;            
+            config.Formatters.Remove(config.Formatters.XmlFormatter);                        
+        }       
     }
 }
