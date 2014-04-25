@@ -12,9 +12,9 @@ namespace MvcApplication1.Controllers
 {
     public class ValuesController : ApiController
     {
-        static HubClient c = new HubClient(Constants.Host, Clients.Server);        
-
-        //static List<FilePart> parts = new List<FilePart>();
+        static HubClient c = new HubClient(Constants.Host, Clients.Server);
+        static List<FilePart> parts = new List<FilePart>();
+        static int globalID = 0;        
 
         //GET api/values/GetFileInfo
         [HttpGet]
@@ -70,24 +70,14 @@ namespace MvcApplication1.Controllers
         [ActionNameAttribute("GetPart")]
         public FilePart GetPart(long id)
         {
-            //var part = parts.FirstOrDefault(p => p.Id == id);
-            //if (part != null)
-            //{
-            //    parts.Remove(part);
-            //    if (!parts.Any())
-            //        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
+            var part = parts.FirstOrDefault(p => p.Id == id);
+            return part;            
 
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    var part = context.Parts.FirstOrDefault(p => p.Id == id);
             //    return part;
             //}
-            //else
-            //    return null;
-
-            using (DataBaseContext context = new DataBaseContext())
-            {
-                var part = context.Parts.FirstOrDefault(p => p.Id == id);
-                return part;
-            }
-
         }
 
         // POST api/values/AddPart
@@ -95,46 +85,50 @@ namespace MvcApplication1.Controllers
         [ActionNameAttribute("AddPart")]
         public void Post(FilePart newPart)
         {
-            //newPart.Id = parts.Any() ? parts.Max(p => p.Id) + 1 : 1;
-            //parts.Add(newPart);
-            //c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
-            //if (parts.Count() > 2)
-            //    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
+            newPart.Id = ++globalID;
+            parts.Add(newPart);
+            c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+            if (parts.Count() > 2)
+                c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
 
-            using (DataBaseContext context = new DataBaseContext())
-            {
-                context.Configuration.AutoDetectChangesEnabled = false;
-                context.Configuration.ValidateOnSaveEnabled = false;
-                context.Parts.Add(newPart);
-                context.SaveChanges();
-
-                c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
-
-                if (context.Parts.Count() > 2)
-                {
-                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
-                }
-            }
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    context.Configuration.AutoDetectChangesEnabled = false;
+            //    context.Configuration.ValidateOnSaveEnabled = false;
+            //    context.Parts.Add(newPart);
+            //    context.SaveChanges();
+            //    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+            //    if (context.Parts.Count() > 2)
+            //    {
+            //        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
+            //    }
+            //}
         }
 
         [HttpDelete]
         [ActionNameAttribute("RemovePart")]
         public void RemovePart(long id)
         {
-            using (DataBaseContext context = new DataBaseContext())
+            var part = parts.FirstOrDefault(p => p.Id == id);
+            parts.Remove(part);
+            if (!parts.Any())
             {
-                var part = context.Parts.FirstOrDefault(p => p.Id == id);
-                if (part != null)
-                {                    
-                    context.Parts.Remove(part);
-                    context.SaveChanges();
-                }
-
-                if (!context.Parts.Any())
-                {
-                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
-                }
+                c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
             }
+
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    var part = context.Parts.FirstOrDefault(p => p.Id == id);
+            //    if (part != null)
+            //    {                    
+            //        context.Parts.Remove(part);
+            //        context.SaveChanges();
+            //    }
+            //    if (!context.Parts.Any())
+            //    {
+            //        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
+            //    }
+            //}
         }
 
         [HttpDelete]
@@ -148,7 +142,8 @@ namespace MvcApplication1.Controllers
                 objCtx.ExecuteStoreCommand("TRUNCATE TABLE [Files]");
             }
 
-           // parts.Clear();
+            parts.Clear();
+            globalID = 0;
         }
 
     }
