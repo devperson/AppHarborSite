@@ -13,8 +13,7 @@ namespace MvcApplication1.Controllers
     public class ValuesController : ApiController
     {
         static HubClient c = new HubClient(Constants.Host, Clients.Server);
-        static object locking = new object();
-        static bool IsPaused = false;
+        static object locking = new object();        
 
         //static List<FilePart> parts = new List<FilePart>();
 
@@ -114,10 +113,9 @@ namespace MvcApplication1.Controllers
 
                     c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
 
-                    if (context.Parts.Count() > 4)
+                    if (context.Parts.Count() > 2)
                     {
-                        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
-                        IsPaused = true;
+                        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });                        
                     }
                 }
             }
@@ -138,9 +136,8 @@ namespace MvcApplication1.Controllers
                         context.SaveChanges();
                     }
 
-                    if (context.Parts.Count() < 3 && IsPaused)
-                    {
-                        IsPaused = false;
+                    if (context.Parts.Count() < 2)
+                    {                        
                         c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
                     }
                 }
