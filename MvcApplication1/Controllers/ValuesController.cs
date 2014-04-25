@@ -13,6 +13,9 @@ namespace MvcApplication1.Controllers
     public class ValuesController : ApiController
     {
         static HubClient c = new HubClient(Constants.Host, Clients.Server);
+        static object locking = new object();
+        static bool IsPaused = false;
+
         //static List<FilePart> parts = new List<FilePart>();
 
         //GET api/values/GetFileInfo
@@ -80,11 +83,15 @@ namespace MvcApplication1.Controllers
             //}
             //else
             //    return null;
-            using (DataBaseContext context = new DataBaseContext())
+
+            lock (locking)
             {
-                var part = context.Parts.FirstOrDefault(p => p.Id == id);
-                return part;                
-            }            
+                using (DataBaseContext context = new DataBaseContext())
+                {
+                    var part = context.Parts.FirstOrDefault(p => p.Id == id);
+                    return part;
+                }
+            }
         }
 
         // POST api/values/AddPart
@@ -97,16 +104,22 @@ namespace MvcApplication1.Controllers
             //c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
             //if (parts.Count() > 2)
             //    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
-
-            using (DataBaseContext context = new DataBaseContext())
+            
+            lock (locking)
             {
-                context.Parts.Add(newPart);
-                context.SaveChanges();
+                using (DataBaseContext context = new DataBaseContext())
+                {
+                    context.Parts.Add(newPart);
+                    context.SaveChanges();
 
-                c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
+                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
 
-                if (context.Parts.Count() > 4)
-                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
+                    if (context.Parts.Count() > 4)
+                    {
+                        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
+                        IsPaused = true;
+                    }
+                }
             }
         }
 
@@ -114,17 +127,23 @@ namespace MvcApplication1.Controllers
         [ActionNameAttribute("RemovePart")]
         public void RemovePart(long id)
         {
-            using (DataBaseContext context = new DataBaseContext())
+            lock (locking)
             {
-                var part = context.Parts.FirstOrDefault(p => p.Id == id);
-                if (part != null)
+                using (DataBaseContext context = new DataBaseContext())
                 {
-                    context.Parts.Remove(part);
-                    context.SaveChanges();                   
-                }
+                    var part = context.Parts.FirstOrDefault(p => p.Id == id);
+                    if (part != null)
+                    {
+                        context.Parts.Remove(part);
+                        context.SaveChanges();
+                    }
 
-                if (!context.Parts.Any())
-                    c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
+                    if (context.Parts.Count() < 3 && IsPaused)
+                    {
+                        IsPaused = false;
+                        c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
+                    }
+                }
             }
         }
 
