@@ -88,7 +88,7 @@ namespace MvcApplication1.Controllers
             newPart.Id = ++globalID;
             parts.Add(newPart);
             c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
-            if (parts.Count() > 2)
+            if (parts.Count() > 4)
                 c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
 
             //using (DataBaseContext context = new DataBaseContext())
