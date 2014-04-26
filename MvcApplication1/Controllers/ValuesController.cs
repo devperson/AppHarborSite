@@ -78,15 +78,7 @@ namespace MvcApplication1.Controllers
             //    var part = context.Parts.FirstOrDefault(p => p.Id == id);
             //    return part;
             //}
-        }
-
-        [HttpGet]
-        [ActionNameAttribute("GetPart2")]
-        public FilePart GetPart2(long id)
-        {
-            var part = parts.FirstOrDefault(p => p.Id == id);
-            return part;
-        }
+        }      
 
         // POST api/values/AddPart
         [HttpPost]
@@ -119,7 +111,7 @@ namespace MvcApplication1.Controllers
         {
             var part = parts.FirstOrDefault(p => p.Id == id);
             parts.Remove(part);
-            if (!parts.Any())
+            if (parts.Count <= 1)
             {
                 c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
             }
