@@ -80,6 +80,14 @@ namespace MvcApplication1.Controllers
             //}
         }
 
+        [HttpGet]
+        [ActionNameAttribute("GetPart2")]
+        public FilePart GetPart2(long id)
+        {
+            var part = parts.FirstOrDefault(p => p.Id == id);
+            return part;
+        }
+
         // POST api/values/AddPart
         [HttpPost]
         [ActionNameAttribute("AddPart")]
