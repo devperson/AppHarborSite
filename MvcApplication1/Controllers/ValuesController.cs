@@ -65,7 +65,7 @@ namespace MvcApplication1.Controllers
 
 
 
-        // GET api/values/AnyPart
+        // GET api/values/GetPart
         [HttpGet]
         [ActionNameAttribute("GetPart")]
         public FilePart GetPart(long id)

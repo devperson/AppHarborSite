@@ -2,21 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 
 namespace MvcApplication1.Controllers
 {
-    public class TestControllers : ApiController
+    public class VController : ApiController
     {
-
-        // GET api/values/AnyPart
+        // GET api/test/AnyPart
         [HttpGet]
         [ActionNameAttribute("GetPart")]
         public FilePart GetPart(long id)
         {
             var part = ValuesController.parts.FirstOrDefault(p => p.Id == id);
-            return part;          
+            return part;
         }
 
 
@@ -29,7 +29,7 @@ namespace MvcApplication1.Controllers
             ValuesController.parts.Add(newPart);
             ValuesController.c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
             if (ValuesController.parts.Count() > 4)
-                ValuesController.c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });            
+                ValuesController.c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
         }
     }
 }
