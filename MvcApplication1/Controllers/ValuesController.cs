@@ -13,7 +13,7 @@ namespace MvcApplication1.Controllers
     public class ValuesController : ApiController
     {
         static HubClient c = new HubClient(Constants.Host, Clients.Server);
-        static List<FilePart> parts = new List<FilePart>();
+        internal static List<FilePart> parts = new List<FilePart>();
         static int globalID = 0;        
 
         //GET api/values/GetFileInfo
