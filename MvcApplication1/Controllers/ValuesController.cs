@@ -88,7 +88,7 @@ namespace MvcApplication1.Controllers
             newPart.Id = ++globalID;
             parts.Add(newPart);
             c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = string.Format("{0}{1}", newPart.Id, Messages.DownloadAvailable) });
-            if (parts.Count() > 200) //>4
+            if (parts.Count() > 4) //>4
                 c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.PauseUploading });
 
             //using (DataBaseContext context = new DataBaseContext())
@@ -111,7 +111,7 @@ namespace MvcApplication1.Controllers
         {
             var part = parts.FirstOrDefault(p => p.Id == id);
             parts.Remove(part);
-            if (parts.Count <= 30) //<=1
+            if (parts.Count <= 1) //<=1
             {
                 c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Uploader, Message = Messages.ContinueUploading });
             }
