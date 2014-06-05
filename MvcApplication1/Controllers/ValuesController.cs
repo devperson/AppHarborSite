@@ -14,22 +14,24 @@ namespace MvcApplication1.Controllers
     {
         internal static HubClient c = new HubClient(Constants.Host, Clients.Server);
         internal static List<FilePart> parts = new List<FilePart>();
-        internal static int globalID = 0;        
+        internal static int globalID = 0;
+        internal static FileInfo finfo;
 
         //GET api/values/GetFileInfo
         [HttpGet]
         [ActionNameAttribute("GetFileInfo")]
         public FileInfo GetFileInfo()
-        {            
-            using (DataBaseContext context = new DataBaseContext())
-            {
-                var f = context.Files.FirstOrDefault();
-                if (f != null)
-                {
-                    return f;
-                }
-                return null;
-            }
+        {
+            return finfo;
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    var f = context.Files.FirstOrDefault();
+            //    if (f != null)
+            //    {
+            //        return f;
+            //    }
+            //    return null;
+            //}
         }
 
         //POST api/values/PostFileInfo
@@ -37,28 +39,30 @@ namespace MvcApplication1.Controllers
         [ActionNameAttribute("PostFileInfo")]        
         public void PostFileInfo(FileInfo info)
         {            
-            using (DataBaseContext context = new DataBaseContext())
-            {
-                context.Files.Add(info);
-                context.SaveChanges();
-            }
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    context.Files.Add(info);
+            //    context.SaveChanges();
+            //}
+            finfo = info;
             c.SendMessage(new MsgData { From = Clients.Server, To = Clients.Downloader, Message = Messages.FileInfoAvailable });       
         }
 
         // DELTE api/values/RemoveFileInfo/{id}
-        [HttpDelete]
+        [HttpPut]
         [ActionNameAttribute("RemoveFileInfo")]        
         public void DeleteFileInfo(long id)
-        {            
-            using (DataBaseContext context = new DataBaseContext())
-            {
-                var file = context.Files.FirstOrDefault(p => p.Id == id);
-                if (file != null)
-                {
-                    context.Files.Remove(file);
-                    context.SaveChanges();
-                }
-            }
+        {
+            finfo = null;
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    var file = context.Files.FirstOrDefault(p => p.Id == id);
+            //    if (file != null)
+            //    {
+            //        context.Files.Remove(file);
+            //        context.SaveChanges();
+            //    }
+            //}
         }
 
 
@@ -105,7 +109,7 @@ namespace MvcApplication1.Controllers
             //}
         }
 
-        [HttpDelete]
+        [HttpPut]
         [ActionNameAttribute("RemovePart")]
         public void RemovePart(long id)
         {
@@ -131,19 +135,26 @@ namespace MvcApplication1.Controllers
             //}
         }
 
-        [HttpDelete]
+        [HttpPut]
         [ActionNameAttribute("ClearDb")]
         public void ClearDb()
         {
-            using (DataBaseContext context = new DataBaseContext())
-            {
-                var objCtx = ((System.Data.Entity.Infrastructure.IObjectContextAdapter)context).ObjectContext;
-                objCtx.ExecuteStoreCommand("TRUNCATE TABLE [Parts]");
-                objCtx.ExecuteStoreCommand("TRUNCATE TABLE [Files]");
-            }
+            //using (DataBaseContext context = new DataBaseContext())
+            //{
+            //    var objCtx = ((System.Data.Entity.Infrastructure.IObjectContextAdapter)context).ObjectContext;
+            //    objCtx.ExecuteStoreCommand("TRUNCATE TABLE [Parts]");
+            //    objCtx.ExecuteStoreCommand("TRUNCATE TABLE [Files]");
+            //}
 
             parts.Clear();
             globalID = 0;
+        }
+
+        [HttpGet]
+        [ActionNameAttribute("GetDbState")]
+        public string GetDbState()
+        {
+            return string.Format("Global id:{0};  Parts in memory: {1};", globalID, parts.Count);
         }
 
     }
